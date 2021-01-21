@@ -1,0 +1,27 @@
+FROM ubuntu:20.04
+
+# Installing Extra Tooling and setting timezone.
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends xclip python3-pip build-essential dirmngr gnupg apt-transport-https ca-certificates software-properties-common git wget curl gcc g++ libxml2-dev libcurl4 libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
+ENV TZ=Europe/Minsk
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apt update
+
+# Installing Julia Stuff
+RUN apt install -y julia
+COPY ./add-packages/pkg.jl /pkg.jl
+RUN ./pkg.jl
+
+# Installing Python Stuff
+RUN apt install -y python3-dev
+COPY ./add-packages/requirements.txt /requirements.txt 
+RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
+
+# Installing R Stuff
+RUN apt install -y r-base
+COPY ./add-packages/pkg.r /pkg.r
+RUN ./pkg.r
+
+RUN mkdir /app
+WORKDIR /app
+
+EXPOSE 3000 9000 3035 8080 5005 4000
